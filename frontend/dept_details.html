@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Management | AI Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --success: #10b981; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; margin: 0; color: #1e293b; }
+        
+        .header { background: var(--primary); color: white; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        
+        .container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        
+        .controls { display: flex; justify-content: space-between; margin-bottom: 2rem; gap: 20px; }
+        .search-box { flex: 1; position: relative; }
+        .search-box input { width: 100%; padding: 12px 40px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; }
+        .search-box i { position: absolute; left: 15px; top: 15px; color: #64748b; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); table-layout: fixed; }
+        th { background: #f8fafc; padding: 15px; text-align: left; color: #64748b; font-size: 0.85rem; border-bottom: 2px solid #edf2f7; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; word-wrap: break-word; }
+        
+        /* Column Widths */
+        .col-id { width: 100px; }
+        .col-user { width: 200px; }
+        .col-desc { width: 350px; }
+        .col-loc { width: 150px; }
+        .col-sev { width: 100px; }
+        .col-stat { width: 150px; }
+        .col-act { width: 150px; }
+
+        .severity-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+        .High { background: #fee2e2; color: #ef4444; }
+        .Medium { background: #fef3c7; color: #d97706; }
+        .Low { background: #dcfce7; color: #10b981; }
+
+        .status-select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; background: white; }
+        .btn-export { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-export:hover { opacity: 0.9; transform: translateY(-2px); }
+        .back-btn { color: white; text-decoration: none; font-size: 0.9rem; opacity: 0.8; transition: 0.3s; margin-bottom: 5px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <a href="/admin-dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <h2 id="dept-title">Loading Department...</h2>
+    </div>
+    <button onclick="downloadReport()" class="btn-export">
+        <i class="fas fa-file-csv"></i> Export CSV Report
+    </button>
+</div>
+
+<div class="container">
+    <div class="controls">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search by Complaint ID, Citizen Name, or Location...">
+        </div>
+    </div>
+
+    <table id="complaintTable">
+        <thead>
+            <tr>
+                <th class="col-id">ID</th>
+                <th class="col-user">Citizen</th>
+                <th class="col-desc">Complaint Description</th>
+                <th class="col-loc">Location</th>
+                <th class="col-sev">Severity</th>
+                <th class="col-stat">Status</th>
+                <th class="col-act">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const pathParts = window.location.pathname.split('/');
+    const deptName = decodeURIComponent(pathParts[pathParts.length - 1]);
+    document.getElementById('dept-title').innerText = deptName;
+
+    async function loadData() {
+        try {
+            const response = await fetch(`/admin/department_data/${encodeURIComponent(deptName)}`);
+            const complaints = await response.json();
+            
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = complaints.map(c => `
+                <tr>
+                    <td><b>#${c.complaint_id}</b></td>
+                    <td>
+                        <div style="font-weight:600">${c.name || 'Anonymous'}</div>
+                        <div style="font-size:0.75rem; color:#64748b">${c.user_email}</div>
+                    </td>
+                    <td>
+                        <div style="font-size:0.85rem; color:#334155; line-height:1.4;">${c.translated_text}</div>
+                    </td>
+                    <td>
+                        <span style="font-size:0.85rem;"><i class="fas fa-map-marker-alt" style="color:#ef4444"></i> ${c.location || 'Not Provided'}</span>
+                    </td>
+                    <td><span class="severity-badge ${c.severity}">${c.severity}</span></td>
+                    <td>
+                        <div id="status-${c.complaint_id}" style="font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--primary)">${c.status}</div>
+                    </td>
+                    <td>
+                        <select class="status-select" onchange="updateStatus('${c.complaint_id}', this.value)">
+                            <option value="Open" ${c.status === 'Open' ? 'selected' : ''}>Open</option>
+                            <option value="In Progress" ${c.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Resolved" ${c.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            console.error("Error loading table:", err);
+            document.getElementById('table-body').innerHTML = '<tr><td colspan="7" style="text-align:center;">Error loading data</td></tr>';
+        }
+    }
+
+    async function updateStatus(id, newStatus) {
+        try {
+            const res = await fetch('/admin/update_status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ complaint_id: id, status: newStatus })
+            });
+            if(res.ok) {
+                document.getElementById(`status-${id}`).innerText = newStatus;
+                // Optional: add a small "saved" animation or toast here
+            } else {
+                alert("Failed to update status.");
+            }
+        } catch (error) {
+            console.error("Update error:", error);
+        }
+    }
+
+    function filterTable() {
+        let input = document.getElementById("searchInput").value.toUpperCase();
+        let rows = document.getElementById("table-body").getElementsByTagName("tr");
+        for (let i = 0; i < rows.length; i++) {
+            // Searches across ID, Name, and Location columns
+            let textContent = rows[i].innerText.toUpperCase();
+            rows[i].style.display = (textContent.indexOf(input) > -1) ? "" : "none";
+        }
+    }
+
+    function downloadReport() {
+        window.location.href = `/admin/export_csv/${encodeURIComponent(deptName)}`;
+    }
+
+    loadData();
+</script>
+</body>
+</html>

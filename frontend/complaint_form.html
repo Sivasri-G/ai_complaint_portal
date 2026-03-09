@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Form</title>
+    <style>
+        body {
+            background: url("images/hero-bg.jpg") center/cover no-repeat;
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .complaint-form-container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            box-sizing: border-box;
+        }
+        
+        .complaint-form-container h1 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .complaint-form-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .complaint-form-group {
+            margin-bottom: 20px;
+        }
+        
+        .complaint-form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+        }
+        
+        .complaint-form-label.required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        .complaint-form-input,
+        .complaint-form-textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+        
+        .complaint-form-input:focus,
+        .complaint-form-textarea:focus {
+            outline: none;
+            border-color: #19e8ff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .complaint-form-input[readonly] {
+            background-color: #f8f9fa;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        .complaint-form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .complaint-record-btn {
+            padding: 10px 20px;
+            background-color: #19e8ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .complaint-record-btn:hover {
+            background-color: #19e8ff;
+            transform: translateY(-1px);
+        }
+        
+        .complaint-record-btn.recording {
+            background-color: #e74c3c;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .complaint-record-btn.recording:hover {
+            background-color: #c0392b;
+        }
+        
+        .complaint-recording-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 6px;
+            color: #856404;
+            font-size: 13px;
+        }
+        
+        .complaint-audio-preview {
+            margin-top: 10px;
+            width: 100%;
+            height: 40px;
+        }
+        
+        .complaint-file-input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            text-align: center;
+            color: #666;
+        }
+        
+        .complaint-file-input:hover {
+            border-color: #19e8ff;
+            background-color: #f8f9ff;
+        }
+        
+        .complaint-image-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: block;
+        }
+        
+        .complaint-submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+        
+        .complaint-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .complaint-submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .complaint-api-endpoint {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .complaint-api-endpoint code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+        }
+            
+      .top-nav-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 12px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /* Matching your Dashboard Sidebar color */
+        background-color: #0f172a; 
+        border-bottom: 1px solid #1e293b;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #f8fafc;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* Professional pulse matching your 'Active' status logic */
+    .status-pulse {
+        height: 8px;
+        width: 8px;
+        background-color: #22c55e; /* Success Green */
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Buttons styled like the 'Track' and 'Sign Out' buttons in your dashboard */
+    .nav-btn {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 18px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        background: #1e293b;
+        border: 1px solid #334155;
+    }
+
+    .nav-btn:hover {
+        background: #3b82f6; /* Matching your blue theme color */
+        color: white;
+        border-color: #60a5fa;
+        transform: translateY(-1px);
+    }
+
+    /* Specialized look for the 'New' button to make it stand out */
+    .nav-btn-primary {
+        background: #3b82f6;
+        color: white;
+        border: none;
+    }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+
+            .complaint-form-container {
+                padding: 25px;
+                margin: 10px 0;
+            }
+            
+            .complaint-form-container h1 {
+                font-size: 24px;
+            }
+            
+            .complaint-form-input,
+            .complaint-form-textarea {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+   <div class="top-nav-bar">
+    <div class="brand-status">
+        <span class="status-pulse"></span>
+        <span>USER PORTAL <span style="font-weight:300; margin-left:5px; opacity:0.6;">| Submission Mode</span></span>
+    </div>
+    
+    <div class="nav-links">
+        <a href="/user-dashboard" class="nav-btn">
+            <i class="fas fa-arrow-left" style="margin-right:5px;"></i> Back to Dashboard
+        </a>
+        <a href="#" class="nav-btn nav-btn-primary" onclick="location.reload()">
+            <i class="fas fa-plus-circle" style="margin-right:5px;"></i> New Complaint
+        </a>
+    </div>
+</div>
+    <div class="complaint-form-container">
+        <h1>Complaint Submission</h1>
+        <p class="complaint-form-subtitle">AI-Powered Classification System</p>
+        
+        <form id="complaintForm">
+            <div class="complaint-form-group">
+                <label class="complaint-form-label">Complaint ID</label>
+                <input type="text" class="complaint-form-input" id="complaintId" readonly>
+            </div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label required">Name</label>
+                <input type="text" class="complaint-form-input" id="name" required placeholder="Enter your full name">
+            </div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label">Email</label>
+                <input type="email" class="complaint-form-input" id="email" readonly>
+            </div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label required">Location</label>
+                <input type="text" class="complaint-form-input" id="location" required placeholder="City, State/Country">
+            </div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label">Complaint Description</label>
+                <textarea class="complaint-form-textarea" id="description" placeholder="Describe your complaint in detail..."></textarea>
+            </div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label">Complaint Category (Auto-classified)</label>
+                <input type="text" class="complaint-form-input" id="category" readonly placeholder="Will be auto-classified">
+            </div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label">Severity Level (Auto-classified)</label>
+                <input type="text" class="complaint-form-input" id="severity" readonly placeholder="Will be auto-classified">
+            </div>
+            
+            <div class="complaint-form-group">
+    <label class="complaint-form-label">Voice Complaint</label>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="button" class="complaint-record-btn" id="recordBtn">
+            🎤 Start Recording
+        </button>
+        <button type="button" id="deleteAudioBtn" style="display: none; background: #fee2e2; color: #ef4444; border: 1px solid #ef4444; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <i class="fas fa-trash"></i> Remove
+        </button>
+    </div>
+    <div id="recordingStatus" style="display: none;"></div>
+    <audio id="audioPreview" class="complaint-audio-preview" controls style="display: none; margin-top: 10px;"></audio>
+</div>
+            
+            <div class="complaint-form-group">
+                <label class="complaint-form-label">Evidence Image Upload (optional)</label>
+                <input type="file" class="complaint-file-input" id="imageUpload" accept="image/*">
+                <img id="imagePreview" class="complaint-image-preview" style="display: none;">
+            </div>
+            
+            <button type="submit" class="complaint-submit-btn">Submit Complaint</button>
+        </form>
+    </div>
+
+    <script>
+
+        /* --- NEW: TOP BAR CLOCK LOGIC --- */
+function startSessionClock() {
+    const clockEl = document.getElementById("session-clock");
+    setInterval(() => {
+        const now = new Date();
+        clockEl.textContent = now.toLocaleTimeString();
+    }, 1000);
+}
+startSessionClock(); // Run this to start the clock
+
+/* ------------------ COMPLAINT ID ------------------ */
+function generateComplaintId() {
+  const date = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const rand = Math.random().toString(36).substring(2,6).toUpperCase();
+  return `CMP-${date}-${rand}`;
+}
+/* ------------------ ON LOAD ------------------ */
+window.addEventListener("DOMContentLoaded", async () => {
+
+    // 1. Generate a fresh Complaint ID
+    document.getElementById("complaintId").value = generateComplaintId();
+
+    // 2. Security Check: Try to get the real email from the server session first
+    // This prevents the "jeevi" bug if localStorage is outdated.
+    try {
+        const response = await fetch("/get_user_info");
+        const data = await response.json();
+
+        if (response.ok && data.email) {
+            // Update localStorage with the verified email from the server
+            localStorage.setItem("user_email", data.email);
+            setUserInfo(data.email);
+        } else {
+            // If server session is empty, check localStorage as fallback
+            const localEmail = localStorage.getItem("user_email");
+            if (!localEmail) {
+                handleLoggedOut();
+            } else {
+                setUserInfo(localEmail);
+            }
+        }
+    } catch (err) {
+        console.error("Session check failed:", err);
+        const localEmail = localStorage.getItem("user_email");
+        if (localEmail) setUserInfo(localEmail);
+    }
+});
+
+/* ------------------ HELPERS ------------------ */
+
+function setUserInfo(email) {
+    const emailField = document.getElementById("email");
+    if (emailField) {
+        emailField.value = email;
+        // CRITICAL: Disable the field so it cannot be edited or auto-filled
+        emailField.readOnly = true; 
+        emailField.style.backgroundColor = "#f0f0f0"; // Visual cue it's locked
+    }
+    
+    // Also update any greeting text if it exists
+    const displayEmail = document.getElementById("userDisplayEmail");
+    if (displayEmail) displayEmail.textContent = email;
+}
+
+function handleLoggedOut() {
+    alert("Session expired. Please login again.");
+    window.location.href = "/";
+}
+
+function generateComplaintId() {
+    const now = new Date();
+    const datePart = now.toISOString().slice(0, 10).replace(/-/g, "");
+    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `CMP-${datePart}-${randomPart}`;
+}
+/* ------------------ AUTO CLASSIFY ------------------ */
+const descEl = document.getElementById("description");
+const catEl = document.getElementById("category");
+const sevEl = document.getElementById("severity");
+
+let aiTimer = null;
+
+descEl.addEventListener("input", () => {
+  clearTimeout(aiTimer);
+
+  aiTimer = setTimeout(async () => {
+    const text = descEl.value.trim();
+
+    if (text.length < 10) {
+      catEl.value = "";
+      sevEl.value = "";
+      return;
+    }
+
+    try {
+      const res = await fetch("/predict-category", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      const data = await res.json();
+
+      const conf = Number(data.confidence);
+
+      catEl.value = conf < 0.3 ? "Needs Review" : data.category;
+
+      if (conf >= 0.85) sevEl.value = "High";
+      else if (conf >= 0.65) sevEl.value = "Medium";
+      else sevEl.value = "Low";
+
+
+    } catch (err) {
+      console.error("AI prediction failed", err);
+    }
+  }, 800); // debounce
+});
+
+/* ------------------ VOICE RECORD ------------------ */
+let mediaRecorder, audioBlob, audioChunks = [];
+
+const recordBtn = document.getElementById("recordBtn");
+const audioPreview = document.getElementById("audioPreview");
+const deleteAudioBtn = document.getElementById("deleteAudioBtn");
+
+recordBtn.addEventListener("click", async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+                audioPreview.src = URL.createObjectURL(audioBlob);
+                
+                // Show preview and delete button
+                audioPreview.style.display = "block";
+                deleteAudioBtn.style.display = "inline-block";
+                
+                // Stop the hardware microphone
+                stream.getTracks().forEach(t => t.stop());
+            };
+
+            mediaRecorder.start();
+            recordBtn.textContent = "⏹ Stop Recording";
+            recordBtn.classList.add("recording");
+            
+            // Hide delete button while recording
+            deleteAudioBtn.style.display = "none";
+
+        } catch (err) {
+            console.error("Mic access denied:", err);
+            alert("Could not access microphone.");
+        }
+    } else {
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎤 Start Recording";
+        recordBtn.classList.remove("recording");
+    }
+});
+
+/* --- NEW: DELETE RECORDING LOGIC --- */
+deleteAudioBtn.addEventListener("click", () => {
+    if (confirm("Delete this recording and record again?")) {
+        // 1. Clear the data
+        audioBlob = null;
+        audioChunks = [];
+        
+        // 2. Reset the UI
+        audioPreview.src = "";
+        audioPreview.style.display = "none";
+        deleteAudioBtn.style.display = "none";
+        
+        // 3. Reset Record button text
+        recordBtn.textContent = "🎤 Start Recording";
+        console.log("Audio cleared. User can record again.");
+    }
+});
+
+/* ------------------ IMAGE PREVIEW ------------------ */
+document.getElementById("imageUpload").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById("imagePreview").src = reader.result;
+    document.getElementById("imagePreview").style.display = "block";
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ------------------ SUBMIT FORM ------------------ */
+document.getElementById("complaintForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const desc = document.getElementById("description").value.trim() || "";
+
+  if (!desc && !audioBlob && !document.getElementById("imageUpload").files.length) {
+  alert("Please enter text or record voice or upload image");
+  return;
+}
+
+  const formData = new FormData();
+  formData.append("complaint_id", document.getElementById("complaintId").value);
+  formData.append("name", document.getElementById("name").value);
+  formData.append("email", document.getElementById("email").value);
+  formData.append("location", document.getElementById("location").value);
+  formData.append("description", document.getElementById("description").value);
+  formData.append("category", document.getElementById("category").value);
+  formData.append("severity", document.getElementById("severity").value);
+
+  if (audioBlob) formData.append("audio", audioBlob, "voice.wav");
+
+  const img = document.getElementById("imageUpload").files[0];
+  if (img) formData.append("image", img);
+
+  try {
+    const res = await fetch("/submit-complaint", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ Complaint submitted successfully");
+      window.location.reload();
+    } else {
+      alert("❌ " + (data.error || "Submission failed"));
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Server error");
+  }
+});
+</script>
+
+</body>
+</html>

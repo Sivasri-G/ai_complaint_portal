@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Command Center | AI Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --dark-navy: #0f172a;
+      --slate-800: #1e293b;
+      --bg-gray: #f8fafc;
+      --accent-blue: #3b82f6;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-gray);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* --- Enhanced Top Navigation --- */
+    .navbar {
+      background: var(--dark-navy);
+      color: white;
+      padding: 0.8rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-area i { color: var(--accent-blue); font-size: 1.8rem; }
+    .logo-area h1 { font-size: 1.4rem; margin: 0; letter-spacing: 0.5px; }
+
+    .header-info { display: flex; gap: 40px; align-items: center; }
+    .info-stat { text-align: center; border-right: 1px solid #334155; padding-right: 40px; }
+    .info-stat:last-child { border: none; padding-right: 0; }
+    .info-stat small { display: block; color: #94a3b8; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; }
+    .info-stat b { font-size: 0.9rem; color: #f1f5f9; }
+
+    .logout-btn {
+      background: #ef4444;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logout-btn:hover { background: #dc2626; transform: translateY(-2px); }
+
+    /* --- Main Layout --- */
+    .main-content { padding: 2rem; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    
+    .page-header { 
+        margin-bottom: 2.5rem; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: flex-end;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1.5rem;
+    }
+    .header-text { border-left: 5px solid var(--accent-blue); padding-left: 20px; }
+    .header-text h2 { margin: 0; color: var(--dark-navy); font-size: 2.2rem; }
+    .header-text p { margin: 5px 0 0; color: #64748b; font-size: 1.1rem; }
+
+    /* --- Department Grid & Cards --- */
+    .dept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+    }
+
+   .search-wrapper {
+    margin-bottom: 25px;
+    max-width: 600px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    color: #94a3b8;
+}
+
+#deptSearch {
+    width: 100%;
+    padding: 14px 45px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+#deptSearch:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+#clearBtn {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    display: none; /* Hidden by default */
+}
+
+#search-feedback {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #64748b;
+    padding-left: 5px;
+}
+
+.hidden-state {
+    display: none;
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+}
+
+.hidden-state i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+.hidden-state span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
+
+    .dept-card {
+      background: white;
+      padding: 24px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 200px;
+    }
+
+    .dept-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-color: var(--accent-blue);
+    }
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .card-top i { font-size: 2.2rem; padding: 15px; border-radius: 15px; transition: 0.3s; }
+    .dept-card:hover .card-top i { transform: rotate(-10deg) scale(1.1); }
+
+    .dept-info h3 { margin: 20px 0 8px; color: var(--dark-navy); font-size: 1.25rem; font-weight: 700; }
+    .dept-info p { margin: 0; font-size: 0.9rem; color: #64748b; line-height: 1.4; }
+
+    .count-chip {
+      background: #f1f5f9;
+      color: var(--dark-navy);
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 1rem;
+    }
+
+    .review-border { border-top: 6px solid #ef4444; }
+    .review-text { color: #ef4444; font-weight: bold; font-size: 0.8rem; display: block; margin-top: 10px; }
+
+    .card-meta { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-top: 20px; 
+        padding-top: 15px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 0.85rem; 
+        color: var(--accent-blue); 
+        font-weight: 700; 
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo-area">
+    <i class="fas fa-landmark"></i>
+    <h1>GovPortal Admin</h1>
+  </div>
+
+  <div class="header-info">
+      <div class="info-stat">
+          <small>System Status</small>
+          <b><i class="fas fa-circle" style="color:#22c55e; font-size:8px; margin-right:5px;"></i> Operational</b>
+      </div>
+      <div class="info-stat">
+          <small>Server Time</small>
+          <b id="live-time">00:00:00</b>
+      </div>
+      <div class="info-stat">
+          <small>Total Depts</small>
+          <b>15 Active</b>
+      </div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+  </button>
+</div>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="header-text">
+        <h2>Departmental Dashboard</h2>
+        <p>Real-time AI monitoring and classification status</p>
+    </div>
+  </div>
+  <div class="analytics-section" style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 40px;">
+    <div class="dept-card" style="min-height: 350px; cursor: default;">
+        <h3><i class="fas fa-chart-bar"></i> Department Satisfaction (Stars)</h3>
+        <canvas id="feedbackChart"></canvas>
+    </div>
+    
+    <div class="dept-card review-border" style="cursor: default;">
+        <h3 style="color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Urgent Alerts</h3>
+        <div id="urgent-feed">
+            <p style="text-align:center; padding-top:50px; color:#94a3b8;">Scanning for low ratings...</p>
+        </div>
+    </div>
+</div>
+<div class="search-wrapper">
+    <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="deptSearch" placeholder="Search by department name or service...">
+        <button id="clearBtn" onclick="clearSearch()" title="Clear Search">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div id="search-feedback">Showing all departments</div>
+</div>
+
+<div id="no-results" class="hidden-state">
+    <i class="fas fa-search-minus"></i>
+    <p>No departments match your search.</p>
+    <span onclick="clearSearch()">Reset Filter</span>
+</div>
+  <div class="dept-grid" id="dept-container">
+      <p style="color: #64748b;">Initializing Command Center...</p>
+  </div>
+</div>
+
+<script>
+  // Complete list of all 15 departments
+  const allDepartments = [
+    { id: "Public Works Department", label: "Public Works", sub: "Roads, Bridges & Infrastructure Issues", icon: "fa-road", color: "#3b82f6" },
+    { id: "Water Supply Department", label: "Water Supply", sub: "Pipeline Leaks, Scarcity & Quality", icon: "fa-faucet", color: "#0ea5e9" },
+    { id: "Electricity Board", label: "Electricity Board", sub: "Power Outages & Street Light Repairs", icon: "fa-bolt", color: "#eab308" },
+    { id: "Municipal Sanitation Department", label: "Municipal Sanitation", sub: "Waste Collection & Drainage Cleaning", icon: "fa-trash-can", color: "#10b981" },
+    { id: "Police Department", label: "Police Department", sub: "Public Safety, Traffic & Law Enforcement", icon: "fa-shield-halved", color: "#6366f1" },
+    { id: "Health Department", label: "Health Department", sub: "Hospitals, Vaccination & Sanitization", icon: "fa-hospital", color: "#f43f5e" },
+    { id: "Transport Department", label: "Transport Department", sub: "Public Transit & Vehicle Licensing", icon: "fa-bus", color: "#8b5cf6" },
+    { id: "Environment Control Board", label: "Environment Control", sub: "Pollution Monitoring & Greenery", icon: "fa-leaf", color: "#22c55e" },
+    { id: "Government Administration", label: "Gov. Administration", sub: "Certificates, Legal & Official Inquiries", icon: "fa-gavel", color: "#64748b" },
+    { id: "Municipal Corporation", label: "Municipal Corp.", sub: "Urban Planning & Property Taxes", icon: "fa-city", color: "#f97316" },
+    { id: "IT Services Department", label: "IT Services", sub: "E-Governance & Digital Support", icon: "fa-microchip", color: "#06b6d4" },
+    { id: "Disaster Management Authority", label: "Disaster Management", sub: "Emergency Response & Flood Control", icon: "fa-house-fire", color: "#dc2626" },
+    { id: "Education Department", label: "Education Dept.", sub: "Government Schools & Literacy Programs", icon: "fa-user-graduate", color: "#ec4899" },
+    { id: "Animal Welfare Department", label: "Animal Welfare", sub: "Veterinary Care & Stray Management", icon: "fa-paw", color: "#a855f7" },
+    { id: "General Administration", label: "General Admin", sub: "Needs Review / Low AI Confidence", icon: "fa-triangle-exclamation", color: "#ef4444", review: true }
+  ];
+  async function submitFeedback() {
+    const id = document.getElementById('feedback-id').value;
+    const feedbackText = document.getElementById('feedback-text').value;
+
+    // 1. Validation: Ensure user selected a complaint and a rating
+    if (!currentRating || !id || id.includes('No')) {
+        return alert("Please select a resolved complaint and provide a star rating.");
+    }
+
+    try {
+        // 2. The FETCH call: This is what actually sends data to the Database
+        const response = await fetch('/user/submit_feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                complaint_id: id,      // Matches your backend variable
+                rating: currentRating, // Matches your backend variable
+                comment: feedbackText  // Matches your backend variable
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showToast("Success! Feedback stored in Database.");
+            // Refresh dashboard data and return to overview
+            await loadDashboard(); 
+            showSection('overview');
+        } else {
+            alert("Database Error: " + result.error);
+        }
+    } catch (err) {
+        console.error("Connection Error:", err);
+        alert("Could not connect to the server. Is app.py running?");
+    }
+}
+  async function loadDashboard() {
+    let stats = {};
+    try {
+      const response = await fetch('/admin/stats_by_dept');
+      if (response.ok) {
+        stats = await response.json();
+      }
+    } catch (err) {
+      console.warn("Backend API not reachable. Using fallback layout.");
+    }
+
+    const container = document.getElementById('dept-container');
+    // ADDED: "searchable-card" class to the template below
+    container.innerHTML = allDepartments.map(dept => `
+      <div class="dept-card searchable-card ${dept.review ? 'review-border' : ''}" 
+           onclick="location.href='/admin/department/${encodeURIComponent(dept.id)}'">
+        <div class="card-top">
+          <i class="fas ${dept.icon}" style="background: ${dept.color}15; color: ${dept.color};"></i>
+          <span class="count-chip">${stats[dept.id] || 0}</span>
+        </div>
+        <div class="dept-info">
+          <h3>${dept.label}</h3>
+          <p>${dept.sub}</p>
+          ${dept.review ? '<span class="review-text"><i class="fas fa-circle-exclamation"></i> Manual Review Needed</span>' : ''}
+        </div>
+        <div class="card-meta">
+          <span>Manage Department</span>
+          <i class="fas fa-arrow-right-long"></i>
+        </div>
+      </div>
+    `).join('');
+
+    // CRITICAL: Initialize search AFTER cards are added to the page
+    initSmartSearch();
+}
+
+  async function loadAdminCharts() {
+    // 1. Fetch the calculated averages from the backend
+    const response = await fetch('/admin/feedback_analytics');
+    const data = await response.json(); 
+
+    // 2. Map the data to the Chart.js canvas
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data), // Departments
+            datasets: [{
+                label: 'Avg Satisfaction',
+                data: Object.values(data), // Ratings
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 5 } }
+        }
+    });
+}
+// Run this as soon as the admin page opens
+window.onload = loadAdminCharts;
+
+async function updateAdminChart() {
+    const response = await fetch('/admin/feedback_analytics');
+    const data = await response.json();
+
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    
+    // If a chart already exists, destroy it before creating a new one
+    if (window.myFeedbackChart) {
+        window.myFeedbackChart.destroy();
+    }
+
+    window.myFeedbackChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data), // Departments
+            datasets: [{
+                label: 'Average Star Rating',
+                data: Object.values(data), // Ratings (1-5)
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 5 }
+            }
+        }
+    });
+}
+async function drawSatisfactionChart() {
+    const response = await fetch('/admin/feedback_analytics');
+    const data = await response.json(); // Expected: {"Electricity Board": 4.0}
+
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Department Satisfaction',
+                data: Object.values(data),
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 5 } }
+        }
+    });
+}
+// Trigger the draw when the page loads
+window.onload = drawSatisfactionChart;
+
+async function loadSatisfactionChart() {
+    const response = await fetch('/admin/feedback_analytics');
+    const data = await response.json();
+
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data), // Departments (e.g., Electricity Board)
+            datasets: [{
+                label: 'Avg Rating',
+                data: Object.values(data), // Star counts
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 5 } }
+        }
+    });
+}
+window.onload = loadSatisfactionChart;
+
+// Call this when the admin page opens
+document.addEventListener('DOMContentLoaded', updateAdminChart);
+  async function loadAnalytics() {
+    try {
+        const res = await fetch('/admin/feedback_analytics');
+        const chartData = await res.json();
+        
+        // Check if we actually got data
+        if (Object.keys(chartData).length === 0) {
+            console.log("No feedback data found yet.");
+            return;
+        }
+
+        async function renderSatisfactionChart() {
+    // This calls the backend to get averages
+    const response = await fetch('/admin/feedback_analytics');
+    const data = await response.json(); 
+
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data), // e.g., ["Water", "Electricity"]
+            datasets: [{
+                label: 'Department Satisfaction',
+                data: Object.values(data), // e.g., [4.5, 3.8]
+                backgroundColor: 'rgba(59, 130, 246, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 5 } }
+        }
+    });
+}
+
+// Ensure this runs when the page loads
+window.addEventListener('DOMContentLoaded', renderSatisfactionChart);
+
+        // Load Urgent Alerts
+        const urgentRes = await fetch('/admin/urgent_feedback');
+        const urgentData = await urgentRes.json();
+        const feedContainer = document.getElementById('urgent-feed');
+        
+        if (!urgentData || urgentData.length === 0) {
+            feedContainer.innerHTML = '<p style="text-align:center; padding-top:50px; color:#94a3b8;">No low ratings detected.</p>';
+        } else {
+            feedContainer.innerHTML = urgentData.map(item => `
+                <div style="background:#fef2f2; padding:12px; margin-bottom:10px; border-left:4px solid #ef4444; border-radius:10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="font-size:0.75rem; color:#1e293b;">${item.id}</strong>
+                        <span style="background:#fee2e2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">URGENT</span>
+                    </div>
+                    <small style="color:#ef4444; font-weight:bold; font-size:11px;">${item.dept || 'General Administration'}</small>
+                    <p style="margin:5px 0 0; font-size:0.85rem; color:#475569; font-style: italic;">"${item.comment}"</p>
+                </div>
+            `).join('');
+        }
+    } catch (e) { 
+        console.error("Analytics load failed", e); 
+    }
+}
+
+// Initialize search logic
+function initSmartSearch() {
+    const searchInput = document.getElementById('deptSearch');
+    const clearBtn = document.getElementById('clearBtn');
+    const feedback = document.getElementById('search-feedback');
+    const noResults = document.getElementById('no-results');
+
+    if (!searchInput) return;
+
+    // Handle Typing
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.searchable-card');
+        let matchCount = 0;
+
+        clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+
+        cards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+            const description = card.querySelector('p').textContent.toLowerCase();
+
+            if (title.includes(query) || description.includes(query)) {
+                card.style.display = "flex";
+                matchCount++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        feedback.textContent = `Found ${matchCount} matching departments`;
+        noResults.style.display = (matchCount === 0 && query !== "") ? "block" : "none";
+        if (query === "") feedback.textContent = "Showing all departments";
+    });
+
+    // Handle Enter Key
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Stop page refresh
+            const firstCard = document.querySelector('.searchable-card[style*="display: flex"]');
+            if (firstCard) firstCard.click(); // Open the first result
+        }
+    });
+}
+
+// IMPORTANT: Call initSmartSearch() after your cards are loaded!
+// If you are using loadDashboard(), call it inside that function's .then() 
+// or at the end of the loadDashboard code.
+// Update your loadDashboard to call this
+// loadAnalytics();
+  // Update Clock
+  function updateClock() {
+      const now = new Date();
+      document.getElementById('live-time').innerText = now.toLocaleTimeString();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function logout() { window.location.href = "/admin/logout"; }
+  
+  loadDashboard();
+
+  // This ensures everything runs when the page is ready
+window.addEventListener('DOMContentLoaded', () => {
+    updateClock();
+    loadDashboard();
+    loadAnalytics(); // You must call this to trigger the fetch!
+});
+
+
+</script>
+
+</body>
+</html>

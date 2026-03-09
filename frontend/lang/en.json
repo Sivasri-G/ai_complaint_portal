@@ -1,0 +1,74 @@
+{
+  "nav_home": "Home",
+  "nav_about": "About Us",
+  "nav_contact": "Contact Us",
+  "signup": "SIGN UP",
+  "login_btn": "Login",
+
+  "hero_title": "AI COMPLAINT CLASSIFICATION BASED ON GOVERNMENT PORTAL",
+  "hero_desc": "AI-powered system to classify and manage government complaints efficiently.",
+
+  "about_title": "About Us",
+  "about_desc": "This AI-powered Complaint Portal helps government departments automatically classify public complaints.",
+
+  "contact_title": "Contact Us",
+  "contact_email": "Email: support@complaintportal.gov",
+  "contact_phone": "Phone: +91 98765 43210",
+
+  "login_title": "Welcome Back",
+  "login_desc": "Please log in using your personal information.",
+  "signup_title": "Create Account",
+  
+  "email": "Email",
+  "password": "Password",
+  "create_password": "Create password",
+  "agree_text": "I agree to the",
+"terms": "Terms & Conditions",
+
+  
+  "forgot_password": "Forgot password?",
+  "no_account": "Don't have an account?",
+"signup_desc": "To become a part of our community, please sign up using your personal information.",
+"have_account": "Already have an account?",
+
+"password_error": "Password does not meet requirements",
+"terms_error": "Please agree to Terms & Conditions",
+
+"password_hint": "• Minimum 8 characters\n• 1 Uppercase\n• 1 Lowercase\n• 1 Number",
+"password_strong": "Strong password ✔",
+"enter_email": "Enter registered email",
+"enter_new_password": "Enter new password",
+
+"login_heading": "LOGIN",
+"signup_heading": "SIGN UP",
+"signup_btn": "Sign Up",
+"signup_link": "Signup",
+"login_link": "Login",
+
+  "ok": "OK",
+  "cancel": "Cancel",
+  "login_success": "Login successful",
+  "signup_success": "Registered successfully",
+  "login_error": "Invalid email or password",
+  "signup_error": "Registration failed",
+  "login_required": "Please login first to raise a complaint",
+
+
+  "nav_raise_complaint": "Raise Complaint",
+  "complaint_page_title": "Raise Complaint | Complaint Portal",
+  "complaint_heading": "Raise Your Complaint",
+  "complaint_name": "Your Name",
+  "complaint_email": "Your Email",
+  "complaint_location": "Your Location",
+  "complaint_text": "Type your complaint here...",
+  "complaint_input_type": "Input Type:",
+  "input_text": "Text",
+  "input_voice": "Voice",
+  "record_voice": "🎤 Record Voice",
+  "record_status": "Not recording",
+  "upload_image": "Evidence Image Upload (optional)",
+  "submit_complaint": "Submit Complaint",
+   
+  "admin": "Admin"
+
+}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | AI Complaint Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #19e8ff;
+            --text-gray: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* --- NEW: Interactive Header --- */
+        .header-bar {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .portal-info h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .portal-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: right;
+        }
+
+        .stat-item span {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        .stat-item b {
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        /* --- Login Box Section --- */
+        .login-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        .box {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            width: 350px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .box h2 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .box p.subtitle {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+            color: var(--accent);
+        }
+
+        input {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(25, 232, 255, 0.2);
+        }
+
+        button {
+            width: 100%;
+            background: var(--accent);
+            border: none;
+            padding: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #0f172a;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(25, 232, 255, 0.4);
+        }
+
+        #msg {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header-bar">
+    <div class="portal-info">
+        <h1><i class="fas fa-shield-alt"></i> AI Central Portal</h1>
+        <p>Government Administration Dashboard</p>
+    </div>
+    
+    <div class="header-stats">
+        <div class="stat-item">
+            <span>System Status</span>
+            <b><i class="fas fa-circle" style="color: #22c55e; font-size: 8px;"></i> Online</b>
+        </div>
+        <div class="stat-item">
+            <span>Local Time</span>
+            <b id="live-clock">00:00:00</b>
+        </div>
+        <div class="stat-item">
+            <span>Active Departments</span>
+            <b>15 Units</b>
+        </div>
+    </div>
+</header>
+
+<div class="login-container">
+    <div class="box">
+        <h2>Admin Access</h2>
+        <p class="subtitle">Please enter your credentials to manage complaints.</p>
+
+        <div class="input-group">
+            <label>ADMIN EMAIL</label>
+            <input type="email" id="email" placeholder="Email Id">
+        </div>
+
+        <div class="input-group">
+            <label>PASSWORD</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <button onclick="adminLogin()">SECURE LOGIN</button>
+
+        <p id="msg"></p>
+    </div>
+</div>
+
+<script>
+    // Live Clock Function
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    async function adminLogin() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const msg = document.getElementById("msg");
+
+        if(!email || !password) {
+            msg.innerText = "Please fill in all fields.";
+            return;
+        }
+
+        try {
+            const res = await fetch("/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                window.location.href = "/admin-dashboard";
+            } else {
+                msg.innerText = data.error || "Login failed";
+            }
+        } catch (error) {
+            msg.innerText = "Connection error. Please try again.";
+        }
+    }
+</script>
+
+</body>
+</html>

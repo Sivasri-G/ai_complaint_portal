@@ -1,0 +1,10 @@
+flask
+flask-cors
+pymongo
+scikit-learn
+pandas
+nltk
+joblib
+pillow
+pytesseract
+speechrecognition

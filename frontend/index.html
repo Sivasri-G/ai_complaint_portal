@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - www.codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website with Login & Signup Form | Complaint Portal</title>
+    <!-- Google Fonts Link For Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <span class="hamburger-btn material-symbols-rounded">menu</span>
+            <a href="#" class="logo">
+                <img src="images/logo.jpg" alt="logo">
+                <h2>Complaint Portal</h2>
+            </a>
+           <ul class="links">
+    <span class="close-btn material-symbols-rounded">close</span>
+    <li><a href="#home" data-key="nav_home">Home</a></li>
+<li><a href="#about" data-key="nav_about">About us</a></li>
+<li><a href="#contact" data-key="nav_contact">Contact us</a></li>
+ <li><a href="/complaint_form" id="raiseComplaintLink" data-key="nav_raise_complaint">Raise Complaint</a></li>
+  <li><a href="/admin-login" class="admin-btn" data-key="admin">
+  Admin
+</a></li>
+</ul>
+
+
+<div class="lang-switch">
+    <button type="button" id="lang-en">ENG</button>
+    <button type="button" id="lang-ta">தமிழ்</button>
+</div>
+ <div id="auth-section">
+    <button class="login-btn" type="button" data-key="login_btn">Login</button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const authSection = document.getElementById("auth-section");
+    const raiseLink = document.getElementById("raiseComplaintLink");
+    
+    try {
+        const res = await fetch("/get_user_info");
+        if (res.ok) {
+            const data = await res.json();
+            // 1. Update Navigation for Logged In User
+            authSection.innerHTML = `
+                <div class="user-profile-nav" style="display: flex; align-items: center; gap: 15px;">
+                    <a href="/user-dashboard" style="color: white; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-rounded">account_circle</span> 
+                        My Profile
+                    </a>
+                    <a href="/logout" style="color: #ff4d4d; text-decoration: none; font-size: 0.9rem;">Logout</a>
+                </div>
+            `;
+            
+            // 2. Allow Raise Complaint access
+            raiseLink.href = "/complaint_form";
+        } else {
+            // If not logged in, clicking Raise Complaint should open the login popup
+            raiseLink.addEventListener("click", (e) => {
+                e.preventDefault();
+                document.body.classList.add("show-popup");
+                alert("Please login first to raise a complaint.");
+            });
+        }
+    } catch (err) {
+        console.log("Not logged in");
+    }
+});
+</script>
+        </nav>
+    </header>
+   <section id="home" class="hero" style="
+    
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    background: rgba(0,0,0,0.4);">
+
+    <h1 data-key="hero_title" style="font-size: 48px;">
+        AI COMPLAINT CLASSIFICATION BASED ON GOVERNMENT PORTAL
+    </h1>
+    <p data-key="hero_desc" style="font-size: 20px; max-width: 700px;">
+        AI-powered system to classify and manage government complaints efficiently.<br>
+        Enables faster resolution and intelligent categorization.
+    </p>
+</section>
+<section id="about" class="page-section">
+    <h2 data-key="about_title">About Us</h2>
+    <p data-key="about_desc">
+        This AI-powered Complaint Portal helps government departments
+        automatically classify public complaints and ensure faster,
+        transparent resolution using artificial intelligence.
+    </p>
+</section>
+<section id="contact" class="page-section">
+    <h2 data-key="contact_title">Contact Us</h2>
+    <p data-key="contact_email">Email: support@complaintportal.gov</p>
+    <p data-key="contact_phone">Phone: +91 98765 43210</p>
+</section>
+
+    <div class="blur-bg-overlay"></div>
+    <div class="form-popup">
+        <span class="close-btn material-symbols-rounded">close</span>
+        <div class="form-box login">
+            <div class="form-details">
+                <h2 data-key="login_title">Welcome Back</h2>
+                <p data-key="login_desc">Please log in using your personal information to stay connected with us.</p>
+            </div>
+            <div class="form-content">
+                <h2 data-key="login_heading">LOGIN</h2>
+                <form action="#">
+                    <div class="input-field">
+                        <input type="text" id="loginEmail" required >
+                        <label data-key="email">Email</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" id="loginPassword" required >
+                        <label data-key="password">Password</label>
+                    </div>
+                    <a href="#" class="forgot-pass-link" data-key="forgot_password">
+    Forgot password?
+</a>
+                    <button type="submit" data-key="login_btn">Login</button>
+                </form>
+                <div class="bottom-link">
+    <span data-key="no_account">Don't have an account?</span>
+    <a href="#" id="signup-link" data-key="signup_link">Signup</a>
+</div>
+            </div>
+        </div>
+        <div class="form-box signup">
+            <div class="form-details">
+    <h2 data-key="signup_title">Create Account</h2>
+    <p data-key="signup_desc">
+        To become a part of our community, please sign up using your personal information.
+    </p>
+</div>
+            <div class="form-content">
+                <h2 data-key="signup_heading">SIGNUP</h2>
+                <form action="#">
+                    <div class="input-field">
+                        <input type="text" required >
+                        <label data-key="email">Enter your email</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" required >
+                        <label data-key="create_password">Create password</label>
+                    </div>
+                    <div class="policy-text">
+                        <input type="checkbox" id="policy">
+                        <label for="policy">
+   <span data-key="agree_text">I agree to the</span>
+<a href="#" data-key="terms">Terms & Conditions</a>
+</label>
+     </div>
+                    <button type="submit" data-key="signup_btn">Sign Up</button>
+                </form>
+                <div class="bottom-link">
+    <span data-key="have_account">Already have an account?</span>
+    <a href="#" id="login-link" data-key="login_link">Login</a>
+
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

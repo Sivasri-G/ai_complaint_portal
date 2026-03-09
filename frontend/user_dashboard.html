@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard | AI Complaint Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --sidebar-bg: #0f172a; --bg-light: #f8fafc; --primary: #3b82f6; 
+            --success: #10b981; --text-main: #1e293b; --text-muted: #64748b; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg-light); display: flex; color: var(--text-main); height: 100vh; overflow: hidden; }
+
+        /* Sidebar Styling */
+        .sidebar { width: 260px; background: var(--sidebar-bg); height: 100vh; position: fixed; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 10; }
+        .sidebar h2 { margin-bottom: 40px; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .nav-link { padding: 12px 15px; color: #cbd5e1; text-decoration: none; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; transition: 0.3s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: #1e293b; color: white; }
+        .logout { margin-top: auto; color: #f87171; }
+
+        /* Main Content */
+        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 40px; height: 100vh; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .user-chip { background: white; padding: 8px 18px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: 600; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+
+        /* Stats & Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
+        .stat-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+        .stat-card .value { font-size: 2.2rem; font-weight: 700; }
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1.2fr; gap: 25px; align-items: start; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;}
+        .card h3 { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
+
+        /* Table & Search */
+        .search-box { width: 100%; padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; outline: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 2px solid #f1f5f9; }
+        td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+
+        /* Status Badges */
+        .status-badge { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .status-Open { background: #fee2e2; color: #991b1b; }
+        .status-In-Progress { background: #fef3c7; color: #92400e; }
+        .status-Resolved { background: #dcfce7; color: #166534; }
+
+        /* Buttons */
+        .btn-pdf { background: var(--success); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-track { background: #6366f1; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .profile-input { display: block; width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; }
+        .save-btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; }
+
+        /* Non-editable email styling */
+        .email-secure { background: #f1f5f9 !important; color: #64748b !important; cursor: not-allowed; border: 1px solid #e2e8f0 !important; }
+
+        /* Tracking Timeline */
+        .timeline { position: relative; padding: 20px 0; }
+        .timeline-item { position: relative; padding-left: 40px; margin-bottom: 25px; border-left: 2px solid #e2e8f0; }
+        .timeline-item.active { border-left-color: var(--success); }
+        .timeline-dot { position: absolute; left: -9px; top: 0; width: 16px; height: 16px; background: #cbd5e1; border-radius: 50%; border: 3px solid white; }
+        .timeline-item.active .timeline-dot { background: var(--success); }
+
+        /* Rating Stars */
+        .star-rating { font-size: 24px; color: #cbd5e1; cursor: pointer; }
+        .star-rating .fa-star.checked { color: #f59e0b; }
+
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2><i class="fas fa-shield-alt"></i> User Portal</h2>
+        <div class="nav-link active" id="nav-overview" onclick="showSection('overview')">
+            <i class="fas fa-chart-pie"></i> Overview
+        </div>
+        <div class="nav-link" id="nav-track" onclick="showSection('track')">
+            <i class="fas fa-map-marker-alt"></i> Track Complaint
+        </div>
+        <div class="nav-link" id="nav-feedback" onclick="showSection('feedback')">
+            <i class="fas fa-comment-dots"></i> Give Feedback
+        </div>
+        <div class="nav-link" id="nav-profile" onclick="showSection('profile')">
+            <i class="fas fa-user-cog"></i> My Profile
+        </div>
+        <a href="/complaint_form" class="nav-link">
+            <i class="fas fa-plus-circle"></i> New Complaint
+        </a>
+        <a href="/logout" class="nav-link logout">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+        </a>
+    </div>
+
+    <div class="main-content">
+        <div id="section-overview">
+            <div class="header">
+                <h1>Dashboard Overview</h1>
+                <div class="header-actions">
+                    <button class="btn-pdf" onclick="window.location.href='/user/export_summary'">
+                        <i class="fas fa-file-pdf"></i> Download Summary
+                    </button>
+                    <div class="user-chip" id="top-email">Connecting...</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Total Filed</h3><div class="value" id="stat-total">0</div></div>
+                <div class="stat-card" style="border-left-color: #f59e0b;"><h3>Active</h3><div class="value" id="stat-active">0</div></div>
+                <div class="stat-card" style="border-left-color: #10b981;"><h3>Resolved</h3><div class="value" id="stat-resolved">0</div></div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3><i class="fas fa-list"></i> Recent Activity</h3>
+                    <input type="text" class="search-box" id="tableSearch" placeholder="Search by ID or status..." onkeyup="filterTable()">
+                    <table>
+                        <thead><tr><th>ID</th><th>Department</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody id="activity-list"></tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i> Distribution</h3>
+                    <div style="height: 250px;"><canvas id="categoryChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+       <div id="section-track" style="display:none;">
+    <h1>Live Tracker</h1>
+    <div class="card" style="max-width: 600px; margin-top:20px;">
+        <div style="display:flex; gap:10px; margin-bottom:30px;">
+            <input type="text" id="trackInput" class="search-box" style="margin-bottom:0;" placeholder="Enter Complaint ID">
+            <button class="save-btn" style="width:120px;" onclick="trackComplaint()">Track</button>
+        </div>
+        <div id="tracker-display" style="display:none;">
+            <h3 id="track-id-title">Status for #...</h3>
+            <div id="history-timeline" class="timeline">
+                </div>
+        </div>
+    </div>
+</div>
+
+       <div id="section-feedback" style="display:none;">
+    <h1>Resolution Feedback</h1>
+    <div class="card" style="max-width: 500px; margin-top:20px;">
+        <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary);">
+            <p style="font-size: 0.9rem; color: #1e40af;">
+                <i class="fas fa-info-circle"></i> 
+                Your feedback helps us monitor department performance and improve public services.
+            </p>
+        </div>
+
+        <label>Select Resolved Complaint</label>
+        <select id="feedback-id" class="profile-input" onchange="updateFeedbackTarget()"></select>
+        
+        <div id="dept-verify-tag" style="margin-bottom: 15px; font-weight: bold; color: var(--text-muted); font-size: 0.85rem;">
+            Department: <span id="target-dept-name" style="color: var(--primary);">--</span>
+        </div>
+
+        <label>How satisfied are you with the resolution?</label>
+        <div class="star-rating" id="star-container" style="margin: 10px 0;">
+            <i class="fas fa-star" onclick="rate(1)"></i>
+            <i class="fas fa-star" onclick="rate(2)"></i>
+            <i class="fas fa-star" onclick="rate(3)"></i>
+            <i class="fas fa-star" onclick="rate(4)"></i>
+            <i class="fas fa-star" onclick="rate(5)"></i>
+        </div>
+
+        <label>Describe your experience</label>
+        <textarea id="feedback-text" class="profile-input" style="height:100px; margin-top:8px;" placeholder="What could the department have done better?"></textarea>
+        
+        <button class="save-btn" onclick="submitFeedback()">
+            <i class="fas fa-paper-plane"></i> Submit Verified Feedback
+        </button>
+    </div>
+</div>
+
+        <div id="section-profile" style="display:none;">
+            <h1>Account Settings</h1>
+            <div class="card" style="max-width: 500px; margin-top: 20px;">
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">
+                        <i class="fas fa-lock"></i> Primary Registered Email (Security Locked)
+                    </label>
+                    <input type="email" id="profile-email" class="profile-input email-secure" readonly value="Loading...">
+                </div>
+
+                <label>Preferred Language</label>
+                <select id="profile-lang" class="profile-input">
+                    <option value="en">English</option><option value="ta">Tamil</option>
+                </select>
+                <button class="save-btn" onclick="saveProfile()">Update Preferences</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart;
+        let complaintsData = [];
+        let currentRating = 0;
+        
+   async function submitFeedback() {
+    const id = document.getElementById('feedback-id').value;
+    const feedbackText = document.getElementById('feedback-text').value;
+    const ratingValue = currentRating; // Use the global currentRating variable
+
+    if (!ratingValue || !id || id.includes('No')) {
+        return alert("Please select a resolved complaint and a star rating!");
+    }
+
+    try {
+        const response = await fetch('/user/submit_feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                complaint_id: id,
+                rating: ratingValue,
+                comment: feedbackText
+            })
+        });
+
+        if (response.ok) {
+            showToast("Feedback submitted successfully!");
+            await loadDashboard(); 
+            showSection('overview');
+        }
+    } catch (err) {
+        alert("Connection Error: Is your app.py running?");
+    }
+}
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/user/dashboard_stats');
+                const data = await response.json();
+                
+                document.getElementById('top-email').innerText = data.user_email || "User";
+                document.getElementById('profile-email').value = data.user_email || "";
+                document.getElementById('stat-total').innerText = data.total || 0;
+                document.getElementById('stat-active').innerText = data.active || 0;
+                document.getElementById('stat-resolved').innerText = data.resolved || 0;
+
+                complaintsData = data.complaints || [];
+                renderTable(complaintsData);
+                updateChart(data.categories || {});
+                populateFeedbackDropdown();
+            } catch (err) { console.error(err); }
+        }
+        
+        function renderTable(list) {
+            const container = document.getElementById('activity-list');
+            container.innerHTML = list.map(c => `
+                <tr>
+                    <td><strong>#${c.complaint_id}</strong></td>
+                    <td>${c.assigned_department}</td>
+                    <td><span class="status-badge status-${c.status.replace(/\s+/g, '-')}">${c.status}</span></td>
+                    <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                    <td><button class="btn-track" onclick="goToTrack('${c.complaint_id}')">Track</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateChart(categories) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{ data: Object.values(categories), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+        }
+
+        function showSection(id) {
+            ['overview', 'track', 'feedback', 'profile'].forEach(s => {
+                document.getElementById('section-'+s).style.display = (id === s) ? 'block' : 'none';
+                document.getElementById('nav-'+s).classList.toggle('active', id === s);
+            });
+        }
+
+        function goToTrack(id) {
+            showSection('track');
+            document.getElementById('trackInput').value = id;
+            trackComplaint();
+        }
+
+        // 1. Update the Department name display when a user selects a complaint
+function updateFeedbackTarget() {
+    const select = document.getElementById('feedback-id');
+    const selectedId = select.value;
+    const comp = complaintsData.find(c => c.complaint_id === selectedId);
+    if(comp) {
+        document.getElementById('target-dept-name').innerText = comp.assigned_department;
+    }
+}
+
+// 2. Updated trackComplaint to show REAL history from DB
+function trackComplaint() {
+    const id = document.getElementById('trackInput').value.trim();
+    const comp = complaintsData.find(c => c.complaint_id.includes(id));
+    if(!comp) return alert("Complaint ID not found");
+
+    document.getElementById('tracker-display').style.display = 'block';
+    document.getElementById('track-id-title').innerText = "Timeline for #" + comp.complaint_id;
+    
+    const historyContainer = document.getElementById('history-timeline');
+    
+    // Modern Feature: Displaying the actual history log from app.py
+    if (comp.history && comp.history.length > 0) {
+        historyContainer.innerHTML = comp.history.map((h, index) => `
+            <div class="timeline-item active">
+                <div class="timeline-dot" style="background: ${index === 0 ? '#10b981' : '#3b82f6'}"></div>
+                <strong>${h.status}</strong>
+                <p style="font-size:0.8rem; color:#64748b;">${new Date(h.updated_at).toLocaleString()}</p>
+                <p style="margin-top:5px; color:#1e293b;">"${h.comment}"</p>
+            </div>
+        `).join('');
+    } else {
+        // Fallback for old complaints without history
+        historyContainer.innerHTML = `<div class="timeline-item active"><div class="timeline-dot"></div><strong>${comp.status}</strong><p>Status updated.</p></div>`;
+    }
+}
+
+// 3. Ensure dropdown updates when populated
+function populateFeedbackDropdown() {
+    const select = document.getElementById('feedback-id');
+    const resolved = complaintsData.filter(c => c.status === 'Resolved');
+    if(resolved.length === 0) {
+        select.innerHTML = '<option>No resolved complaints available</option>';
+        document.getElementById('target-dept-name').innerText = "--";
+    } else {
+        select.innerHTML = resolved.map(c => `<option value="${c.complaint_id}">#${c.complaint_id}</option>`).join('');
+        updateFeedbackTarget(); // Call this to set the first dept name
+    }
+}
+        function rate(n) {
+            currentRating = n;
+            const stars = document.querySelectorAll('#star-container i');
+            stars.forEach((s, i) => s.classList.toggle('checked', i < n));
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.style = "position:fixed; top:20px; right:20px; background:#10b981; color:white; padding:15px; border-radius:8px; z-index:9999; box-shadow: 0 4px 12px rgba(0,0,0,0.1);";
+            t.innerText = "✅ " + msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function saveProfile() { showToast("Language preferences updated!"); }
+        
+        function filterTable() {
+            const term = document.getElementById('tableSearch').value.toLowerCase();
+            renderTable(complaintsData.filter(c => c.complaint_id.toLowerCase().includes(term) || c.status.toLowerCase().includes(term)));
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>
