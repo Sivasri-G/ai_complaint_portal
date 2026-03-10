@@ -736,6 +736,7 @@ def download_receipt(complaint_id):
     response.headers['Content-Disposition'] = f'attachment; filename=Receipt_{complaint_id}.pdf'
     return response 
 
+
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(debug=True)
