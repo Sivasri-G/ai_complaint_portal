@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+
+backend/ml/models/*.pkl
+backend/uploads/
