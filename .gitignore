@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 
 backend/ml/models/*.pkl
-backend/uploads/
+backend/uploads/*
