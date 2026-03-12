@@ -587,35 +587,144 @@ def urgent_feedback():
     return jsonify(low_ratings)
 
 
-import pdfkit
-from flask import render_template, make_response
+# ── ADD THIS to app.py, just above if __name__ == "__main__": ──
+# No extra libraries needed — uses only Flask (already installed)
 
-@app.route("/user/download_receipt/<complaint_id>")
-def download_receipt(complaint_id):
+@app.route("/user/export_summary")
+def export_summary():
     if "user_email" not in session:
-        return "Unauthorized", 401
+        return redirect("/")
 
-    complaint = complaints_col.find_one({"complaint_id": complaint_id})
-    html = f"""
-    <html>
-        <body style="font-family: Arial, sans-serif; padding: 50px;">
-            <h1>Complaint Receipt</h1>
-            <hr>
-            <p><strong>ID:</strong> {complaint['complaint_id']}</p>
-            <p><strong>Status:</strong> {complaint['status']}</p>
-            <p><strong>Department:</strong> {complaint['assigned_department']}</p>
-            <p><strong>Date Filed:</strong> {complaint['created_at']}</p>
-            <br>
-            <p>Thank you for using the AI Complaint Portal.</p>
-        </body>
-    </html>
-    """
-    pdf = pdfkit.from_string(html, False)
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=Receipt_{complaint_id}.pdf'
-    return response
+    email = session["user_email"]
 
+    # Fetch all complaints for this user
+    user_complaints = list(
+        complaints_col.find({"user_email": email}, {"_id": 0})
+        .sort("created_at", -1)
+    )
+
+    total    = len(user_complaints)
+    active   = sum(1 for c in user_complaints if c.get("status") in ["Open", "In Progress"])
+    resolved = sum(1 for c in user_complaints if c.get("status") == "Resolved")
+    rate     = f"{round((resolved / total) * 100)}%" if total > 0 else "0%"
+
+    # Build complaint rows HTML
+    rows_html = ""
+    for c in user_complaints:
+        date_val = c.get("created_at", "")
+        try:
+            date_str = date_val.strftime("%d %b %Y") if isinstance(date_val, datetime) else str(date_val)[:10]
+        except:
+            date_str = "—"
+
+        status = c.get("status", "Open")
+        status_colors = {
+            "Open":        "background:#fee2e2; color:#991b1b;",
+            "In Progress": "background:#fef3c7; color:#92400e;",
+            "Resolved":    "background:#dcfce7; color:#166534;",
+        }
+        badge_style = status_colors.get(status, "background:#f1f5f9; color:#334155;")
+
+        rows_html += f"""
+        <tr>
+            <td>{c.get('complaint_id', '—')}</td>
+            <td>{c.get('assigned_department', '—')}</td>
+            <td>{c.get('predicted_category', '—')}</td>
+            <td>{c.get('severity', '—')}</td>
+            <td><span style="padding:3px 10px; border-radius:5px; font-size:12px; font-weight:700; {badge_style}">{status}</span></td>
+            <td>{date_str}</td>
+        </tr>
+        """
+
+    # Full HTML — browser print dialog lets user Save as PDF
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Complaint Summary</title>
+    <style>
+        * {{ margin:0; padding:0; box-sizing:border-box; }}
+        body {{ font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1e293b; padding:40px; }}
+
+        .header {{ text-align:center; border-bottom:3px solid #3b82f6; padding-bottom:20px; margin-bottom:30px; }}
+        .header h1 {{ font-size:26px; color:#0f172a; }}
+        .header p  {{ font-size:13px; color:#64748b; margin-top:6px; }}
+
+        .stats {{ display:flex; gap:20px; margin-bottom:30px; }}
+        .stat-box {{ flex:1; text-align:center; padding:20px; border-radius:10px; border:1px solid #e2e8f0; }}
+        .stat-box .label {{ font-size:11px; color:#64748b; text-transform:uppercase; margin-bottom:8px; }}
+        .stat-box .value {{ font-size:32px; font-weight:800; }}
+
+        h2 {{ font-size:15px; color:#0f172a; margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid #e2e8f0; }}
+
+        table {{ width:100%; border-collapse:collapse; font-size:13px; }}
+        th {{ background:#0f172a; color:white; padding:10px 12px; text-align:left; font-size:12px; }}
+        td {{ padding:10px 12px; border-bottom:1px solid #f1f5f9; }}
+        tr:nth-child(even) td {{ background:#f8fafc; }}
+
+        .footer {{ margin-top:30px; text-align:center; font-size:11px; color:#94a3b8; border-top:1px solid #e2e8f0; padding-top:15px; }}
+
+        @media print {{
+            body {{ padding:20px; }}
+            .no-print {{ display:none; }}
+        }}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>AI Complaint Portal &mdash; Summary Report</h1>
+        <p>Account: <strong>{email}</strong> &nbsp;|&nbsp; Generated: {datetime.utcnow().strftime("%d %b %Y, %H:%M")} UTC</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="label">Total Filed</div>
+            <div class="value" style="color:#3b82f6;">{total}</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Active</div>
+            <div class="value" style="color:#f59e0b;">{active}</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Resolved</div>
+            <div class="value" style="color:#10b981;">{resolved}</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Resolution Rate</div>
+            <div class="value" style="color:#8b5cf6;">{rate}</div>
+        </div>
+    </div>
+
+    <h2>All Complaints</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Complaint ID</th>
+                <th>Department</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {rows_html if rows_html else '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No complaints found.</td></tr>'}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        This report was automatically generated by the AI Complaint Portal.
+    </div>
+
+    <script>
+        window.onload = function() {{ window.print(); }}
+    </script>
+
+</body>
+</html>"""
+
+    return html, 200, {"Content-Type": "text/html; charset=utf-8"}
 
 # ----------------
 # FIX: Track complaint — strips leading '#', backfills history for old complaints
